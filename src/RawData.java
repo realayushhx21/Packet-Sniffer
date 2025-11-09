@@ -2,11 +2,10 @@ package com.first;
 
 import org.pcap4j.core.*;
 import org.pcap4j.packet.*;
+import java.util.List;
 import java.util.*;
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
-
 import com.formdev.flatlaf.FlatLightLaf;
 
 public class RawData extends javax.swing.JFrame {
@@ -26,7 +25,16 @@ public class RawData extends javax.swing.JFrame {
         i = index;
         ha = handle;
         initComponents();
-        jTextArea1.setText(Arrays.toString(p.get(index).getRawData()));
+        if (p != null && index >= 0 && index < p.size()) {
+            byte[] rawData = p.get(index).getRawData();
+            if (rawData != null) {
+                jTextArea1.setText(Arrays.toString(rawData));
+            } else {
+                jTextArea1.setText("No raw data available for this packet");
+            }
+        } else {
+            jTextArea1.setText("Invalid packet index or packet list is empty");
+        }
     }
 
     private void initComponents() {

@@ -2,11 +2,10 @@ package com.first;
 
 import org.pcap4j.core.*;
 import org.pcap4j.packet.*;
+import java.util.List;
 import java.util.*;
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
-
 import com.formdev.flatlaf.FlatLightLaf;
 
 public class Length extends javax.swing.JFrame {
@@ -26,7 +25,11 @@ public class Length extends javax.swing.JFrame {
         i = index;
         ha = handle;
         initComponents();
-        jLabel4.setText(String.valueOf(p.get(index).length()));
+        if (p != null && index >= 0 && index < p.size()) {
+            jLabel4.setText(String.valueOf(p.get(index).length()));
+        } else {
+            jLabel4.setText("Invalid packet index or packet list is empty");
+        }
     }
 
     private void initComponents() {

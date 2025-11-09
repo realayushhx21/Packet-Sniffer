@@ -1,22 +1,17 @@
 package com.first.src;
 
-
-
+import java.util.List;
 import java.util.*;
-
 import com.first.ViewPackets;
 import org.pcap4j.core.PcapNetworkInterface;
-import org.pcap4j.util.NifSelector;
 import org.pcap4j.core.*;
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
-
 import com.formdev.flatlaf.FlatLightLaf;
 
 public class Main extends javax.swing.JFrame {
 
-    int index;
+    int index = -1;
     List<PcapNetworkInterface> device = null;
 
     public Main() {
@@ -51,7 +46,7 @@ public class Main extends javax.swing.JFrame {
         jList1.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jList1.addListSelectionListener(evt -> {
             index = jList1.getSelectedIndex();
-            if (index >= 0) {
+            if (index >= 0 && device != null && index < device.size()) {
                 jLabel6.setText(device.get(index).getDescription());
             }
         });
@@ -80,6 +75,7 @@ public class Main extends javax.swing.JFrame {
                     listModel.addElement((i + 1) + ". Name: " + device.get(i).getName() + " | Description: " + device.get(i).getDescription());
                 }
             } catch (PcapNativeException e) {
+                JOptionPane.showMessageDialog(this, "Error finding network interfaces: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 e.printStackTrace();
             }
         });
@@ -87,7 +83,9 @@ public class Main extends javax.swing.JFrame {
 
         JButton jButton2 = new JButton("View Packets");
         jButton2.addActionListener(evt -> {
-            if (index >= 0) {
+            if (device == null || device.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please check available interfaces first.", "Error", JOptionPane.ERROR_MESSAGE);
+            } else if (index >= 0 && index < device.size()) {
                 new ViewPackets(device, index).setVisible(true);
                 this.setVisible(false);
             } else {

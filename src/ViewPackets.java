@@ -1,20 +1,18 @@
 package com.first;
 
 import org.pcap4j.core.*;
-import org.pcap4j.core.PcapNetworkInterface.*;
+import org.pcap4j.packet.*;
+import java.util.List;
 import java.util.*;
 import javax.swing.*;
-import org.pcap4j.packet.*;
 import java.awt.*;
-import java.util.List;
-
 import com.formdev.flatlaf.FlatLightLaf;
 
 public class ViewPackets extends javax.swing.JFrame {
 
     PcapNetworkInterface device;
     List<Packet> p = new ArrayList<>();
-    int index;
+    int index = -1;
     PcapHandle handle = null;
     private JLabel jLabel7;
     private JLabel jLabel6;
@@ -27,9 +25,14 @@ public class ViewPackets extends javax.swing.JFrame {
             System.err.println("Failed to initialize FlatLaf");
         }
         initComponents();
-        jLabel7.setText(d.get(i).getDescription());
-        index = i;
-        device = d.get(i);
+        if (d != null && i >= 0 && i < d.size()) {
+            jLabel7.setText(d.get(i).getDescription());
+            index = i;
+            device = d.get(i);
+        } else {
+            jLabel7.setText("Invalid interface selection");
+            JOptionPane.showMessageDialog(this, "Invalid network interface selected.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void initComponents() {
@@ -63,9 +66,13 @@ public class ViewPackets extends javax.swing.JFrame {
         jList1.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jList1.setToolTipText("Select a packet to view details");
         jList1.addListSelectionListener(evt -> {
-            index = jList1.getSelectedIndex();
-            if (index >= 0) {
-                jLabel6.setText("Packet " + index + ": " + p.get(index).getHeader());
+            int selectedIndex = jList1.getSelectedIndex();
+            if (selectedIndex >= 0 && selectedIndex < p.size()) {
+                index = selectedIndex;
+                jLabel6.setText("Packet " + (index + 1) + ": " + p.get(index).getHeader());
+            } else if (selectedIndex >= 0 && selectedIndex == 0 && p.isEmpty()) {
+                // Handle the "[Capturing started… generate some traffic]" message
+                jLabel6.setText("Waiting for packets...");
             }
         });
 
@@ -91,35 +98,49 @@ public class ViewPackets extends javax.swing.JFrame {
         JButton startCaptureButton = new JButton("Start Capturing!");
         startCaptureButton.setToolTipText("Start capturing packets on the selected interface");
         startCaptureButton.addActionListener(evt -> {
-            try {
-                int snaplen = 65536; // Maximum length of bytes to receive from a packet
-                int timeout = 150;  // Timeout in millis
-                handle = device.openLive(snaplen, PromiscuousMode.PROMISCUOUS, timeout);
-            } catch (PcapNativeException e) {
-                e.printStackTrace();
+            if (device == null) {
+                JOptionPane.showMessageDialog(this, "No interface selected.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
 
-            PacketListener listener = packet -> {
-                listModel.addElement(packet.toString());
-                p.add(packet);
-            };
+            // Run capture in a background thread to avoid freezing the UI
+            new Thread(() -> {
+                try {
+                    int snaplen = 65536; // Maximum length of bytes to receive from a packet
+                    int timeout = 150;  // Timeout in millis
+                    handle = device.openLive(snaplen, org.pcap4j.core.PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, timeout);
 
-            try {
-                int max = 100;
-                handle.loop(max, listener);
-            } catch (InterruptedException | PcapNativeException | NotOpenException e) {
-                e.printStackTrace();
-            }
+                    PacketListener listener = packet -> {
+                        // Store packet and update list on EDT
+                        p.add(packet);
+                        SwingUtilities.invokeLater(() -> listModel.addElement(packet.toString()));
+                    };
+
+                    SwingUtilities.invokeLater(() -> {
+                        startCaptureButton.setEnabled(false);
+                        listModel.addElement("[Capturing started… generate some traffic]");
+                    });
+
+                    int max = -1; // capture indefinitely until interrupted
+                    handle.loop(max, listener);
+                } catch (InterruptedException | PcapNativeException | NotOpenException e) {
+                    SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, e.getMessage(), "Capture Error", JOptionPane.ERROR_MESSAGE));
+                }
+            }, "pcap-capture-thread").start();
         });
 
         JButton detailedViewButton = new JButton("Detailed View");
         detailedViewButton.setToolTipText("View detailed information of the selected packet");
         detailedViewButton.addActionListener(evt -> {
-            if (index >= 0) {
+            if (p.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No packets captured yet. Please start capturing first.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (index >= 0 && index < p.size()) {
                 new PacketDetails(p, index, handle).setVisible(true);
                 this.setVisible(false);
             } else {
-                JOptionPane.showMessageDialog(this, "Please select a packet.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please select a captured packet from the list.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 

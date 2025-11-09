@@ -2,11 +2,10 @@ package com.first;
 
 import org.pcap4j.core.*;
 import org.pcap4j.packet.*;
+import java.util.List;
 import java.util.*;
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
-
 import com.formdev.flatlaf.FlatLightLaf;
 
 public class PacketDetails extends javax.swing.JFrame {
@@ -26,7 +25,11 @@ public class PacketDetails extends javax.swing.JFrame {
         i = index;
         ha = handle;
         initComponents();
-        jLabel4.setText(String.valueOf(p1.get(i).getHeader()));
+        if (p1 != null && i >= 0 && i < p1.size()) {
+            jLabel4.setText(String.valueOf(p1.get(i).getHeader()));
+        } else {
+            jLabel4.setText("Invalid packet index or packet list is empty");
+        }
     }
 
     private void initComponents() {
@@ -57,6 +60,10 @@ public class PacketDetails extends javax.swing.JFrame {
         JButton headerButton = new JButton("Get Packet Header");
         headerButton.setToolTipText("View the header of the selected packet");
         headerButton.addActionListener(evt -> {
+            if (p1 == null || i < 0 || i >= p1.size()) {
+                JOptionPane.showMessageDialog(this, "Invalid packet index.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             new Header(p1, i, ha).setVisible(true);
             this.setVisible(false);
         });
@@ -64,6 +71,10 @@ public class PacketDetails extends javax.swing.JFrame {
         JButton rawDataButton = new JButton("Get Packet Raw Data");
         rawDataButton.setToolTipText("View the raw data of the selected packet");
         rawDataButton.addActionListener(evt -> {
+            if (p1 == null || i < 0 || i >= p1.size()) {
+                JOptionPane.showMessageDialog(this, "Invalid packet index.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             new RawData(p1, i, ha).setVisible(true);
             this.setVisible(false);
         });
@@ -71,6 +82,10 @@ public class PacketDetails extends javax.swing.JFrame {
         JButton payloadButton = new JButton("Get Packet Payload");
         payloadButton.setToolTipText("View the payload of the selected packet");
         payloadButton.addActionListener(evt -> {
+            if (p1 == null || i < 0 || i >= p1.size()) {
+                JOptionPane.showMessageDialog(this, "Invalid packet index.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             new Payload(p1, i, ha).setVisible(true);
             this.setVisible(false);
         });
@@ -78,6 +93,10 @@ public class PacketDetails extends javax.swing.JFrame {
         JButton lengthButton = new JButton("Get Packet Length");
         lengthButton.setToolTipText("View the length of the selected packet");
         lengthButton.addActionListener(evt -> {
+            if (p1 == null || i < 0 || i >= p1.size()) {
+                JOptionPane.showMessageDialog(this, "Invalid packet index.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             new Length(p1, i, ha).setVisible(true);
             this.setVisible(false);
         });
@@ -92,16 +111,32 @@ public class PacketDetails extends javax.swing.JFrame {
         JButton dumpButton = new JButton("Dump Packets");
         dumpButton.setToolTipText("Dump packets to a file");
         dumpButton.addActionListener(evt -> {
+            if (ha == null) {
+                JOptionPane.showMessageDialog(this, "Capture handle not available. Start capturing first.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            JFileChooser chooser = new JFileChooser();
+            chooser.setSelectedFile(new java.io.File("capture.pcap"));
+            int result = chooser.showSaveDialog(this);
+            if (result != JFileChooser.APPROVE_OPTION) {
+                return;
+            }
+            java.io.File target = chooser.getSelectedFile();
+            if (p1 == null || p1.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No packets to dump.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             try {
-                PcapDumper dumper = ha.dumpOpen("E:\\vidur.pcap");
+                PcapDumper dumper = ha.dumpOpen(target.getAbsolutePath());
+                // Use current timestamp for all packets (since we don't store individual timestamps)
+                java.sql.Timestamp timestamp = new java.sql.Timestamp(System.currentTimeMillis());
                 for (Packet packet : p1) {
-                    dumper.dump(packet, ha.getTimestamp());
+                    dumper.dump(packet, timestamp);
                 }
                 dumper.close();
-                ha.close();
-                JOptionPane.showMessageDialog(null, "Successfully Dumped in E:\\", "Success!", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Dumped " + p1.size() + " packets to: " + target.getAbsolutePath(), "Success!", JOptionPane.INFORMATION_MESSAGE);
             } catch (PcapNativeException | NotOpenException e) {
-                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Dump failed: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 

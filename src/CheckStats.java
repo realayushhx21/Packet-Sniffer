@@ -1,13 +1,12 @@
 package com.first;
 
 import org.pcap4j.core.*;
+import org.pcap4j.packet.Packet;
+import java.util.List;
 import java.util.*;
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
-
 import com.formdev.flatlaf.FlatLightLaf;
-import org.pcap4j.packet.Packet;
 
 public class CheckStats extends javax.swing.JFrame {
 
@@ -30,6 +29,12 @@ public class CheckStats extends javax.swing.JFrame {
     }
 
     private void populateStatistics() {
+        if (ha == null) {
+            DefaultListModel<String> model = new DefaultListModel<>();
+            model.addElement("Statistics not available: Capture handle is null");
+            jList1.setModel(model);
+            return;
+        }
         try {
             PcapStat stat = ha.getStats();
             DefaultListModel<String> model = new DefaultListModel<>();
@@ -38,6 +43,9 @@ public class CheckStats extends javax.swing.JFrame {
             model.addElement("Packets Dropped by Interface: " + stat.getNumPacketsDroppedByIf());
             jList1.setModel(model);
         } catch (PcapNativeException | NotOpenException e) {
+            DefaultListModel<String> model = new DefaultListModel<>();
+            model.addElement("Error fetching statistics: " + e.getMessage());
+            jList1.setModel(model);
             JOptionPane.showMessageDialog(this, "Error fetching statistics: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
