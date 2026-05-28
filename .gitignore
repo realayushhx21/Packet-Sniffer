@@ -27,3 +27,19 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Sensitive / Config ###
+config.properties
+
+### Database Files ###
+*.db
+*.db-shm
+*.db-wal
+
+### IntelliJ IDEA Project ###
+.idea/
+*.iml
+
+### Java Build ###
+*.class
+target/

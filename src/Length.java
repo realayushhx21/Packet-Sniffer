@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.*;
 import javax.swing.*;
 import java.awt.*;
-import com.formdev.flatlaf.FlatLightLaf;
 
 public class Length extends javax.swing.JFrame {
 
@@ -15,71 +14,85 @@ public class Length extends javax.swing.JFrame {
     private int i;
 
     public Length(List<Packet> p, int index, PcapHandle handle) {
-        // Set FlatLaf look and feel
-        try {
-            UIManager.setLookAndFeel(new FlatLightLaf());
-        } catch (Exception ex) {
-            System.err.println("Failed to initialize FlatLaf");
-        }
+        UITheme.initTheme();
         p1 = p;
         i = index;
         ha = handle;
         initComponents();
         if (p != null && index >= 0 && index < p.size()) {
             jLabel4.setText(String.valueOf(p.get(index).length()));
+            jLabelUnit.setText("bytes");
         } else {
-            jLabel4.setText("Invalid packet index or packet list is empty");
+            jLabel4.setText("N/A");
+            jLabelUnit.setText("Invalid packet index or packet list is empty");
         }
     }
 
     private void initComponents() {
         setTitle("Packet Length");
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setSize(400, 300);
+        setSize(480, 380);
+        getContentPane().setBackground(UITheme.BG_PRIMARY);
         setLayout(new BorderLayout());
 
-        // Header Panel
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(240, 240, 240)); // Light background
+        // Gradient Header
+        JPanel headerPanel = UITheme.createGradientHeader("📏  PACKET LENGTH");
 
-        JLabel headerLabel = new JLabel("PACKET LENGTH", SwingConstants.CENTER);
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        headerLabel.setForeground(new Color(50, 50, 50));
-        headerLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        headerPanel.add(headerLabel, BorderLayout.NORTH);
+        // Large centered value display
+        JPanel valuePanel = new JPanel(new GridBagLayout());
+        valuePanel.setBackground(UITheme.BG_SECONDARY);
+        valuePanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createEmptyBorder(20, 40, 10, 40),
+                UITheme.createSectionBorder("Length")));
 
-        // Length Details
-        jLabel4 = new JLabel("", SwingConstants.CENTER); // Dynamic length display
-        jLabel4.setFont(new Font("Arial", Font.PLAIN, 14));
-        jLabel4.setBorder(BorderFactory.createTitledBorder("Length (Bytes)"));
-        headerPanel.add(jLabel4, BorderLayout.CENTER);
+        JPanel innerPanel = new JPanel();
+        innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
+        innerPanel.setBackground(UITheme.BG_SECONDARY);
 
-        // Footer Panel with Back Button
+        jLabel4 = new JLabel("", SwingConstants.CENTER);
+        jLabel4.setFont(UITheme.FONT_BIG_VALUE);
+        jLabel4.setForeground(UITheme.ACCENT_LIGHT);
+        jLabel4.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        jLabelUnit = new JLabel("", SwingConstants.CENTER);
+        jLabelUnit.setFont(UITheme.FONT_SUBTITLE);
+        jLabelUnit.setForeground(UITheme.TEXT_MUTED);
+        jLabelUnit.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        innerPanel.add(Box.createVerticalGlue());
+        innerPanel.add(jLabel4);
+        innerPanel.add(Box.createRigidArea(new Dimension(0, 6)));
+        innerPanel.add(jLabelUnit);
+        innerPanel.add(Box.createVerticalGlue());
+
+        valuePanel.add(innerPanel);
+
+        // Footer
         JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        footerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        footerPanel.setBackground(UITheme.BG_PRIMARY);
+        footerPanel.setBorder(BorderFactory.createEmptyBorder(4, 10, 14, 10));
 
-        JButton backButton = new JButton("Back");
+        JButton backButton = UITheme.createStyledButton("←  Back", UITheme.ACCENT);
         backButton.setToolTipText("Return to Packet Details");
         backButton.addActionListener(evt -> {
             new PacketDetails(p1, i, ha).setVisible(true);
             this.setVisible(false);
         });
-
         footerPanel.add(backButton);
 
-        // Add Panels to Frame
-        add(headerPanel, BorderLayout.CENTER);
+        add(headerPanel, BorderLayout.NORTH);
+        add(valuePanel, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
 
-        setLocationRelativeTo(null); // Center the window
+        setLocationRelativeTo(null);
         setVisible(true);
     }
 
     private JLabel jLabel4;
+    private JLabel jLabelUnit;
 
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(() -> {
-            // For testing, instantiate with empty packet list
             new Length(new ArrayList<>(), 0, null).setVisible(true);
         });
     }

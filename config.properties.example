@@ -1,0 +1,23 @@
+# Packet Sniffer Configuration
+# ==============================
+
+# Gemini AI API Key (Feature 1)
+# Get your key from https://aistudio.google.com/app/apikey
+gemini.api.key=YOUR_GEMINI_API_KEY_HERE
+
+# SQLite Database Path (Feature 5)
+db.path=packet_sniffer.db
+
+# Default capture settings
+capture.snaplen=65536
+capture.timeout=150
+
+# Chart settings (Feature 2)
+chart.history.seconds=30
+chart.update.interval.ms=1000
+
+# Threat detection thresholds (Feature 4)
+threat.portscan.threshold=5
+threat.portscan.window.seconds=10
+threat.dos.threshold=100
+threat.dos.window.seconds=3

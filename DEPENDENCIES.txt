@@ -1,0 +1,50 @@
+===============================================
+   PACKET SNIFFER - DEPENDENCY LIST
+===============================================
+
+EXISTING DEPENDENCIES (in lib/ folder):
+---------------------------------------
+1. pcap4j (check-1.0-SNAPSHOT-shaded.jar)
+   - Purpose: Core packet capture library (wraps libpcap/WinPcap/Npcap)
+   - License: MIT
+
+2. FlatLaf 3.5.2 (flatlaf-3.5.2.jar)
+   - Purpose: Modern Flat Look and Feel for Swing
+   - License: Apache 2.0
+
+3. jpcap (net.sourceforge.jpcap-0.01.16.jar)
+   - Purpose: Additional packet capture support
+   - License: LGPL
+
+NEW DEPENDENCIES (download and add to lib/ folder):
+----------------------------------------------------
+4. JFreeChart 1.5.4 (jfreechart-1.5.4.jar)
+   - Purpose: Live traffic charts (packets/sec line chart, protocol pie chart)
+   - Download: https://github.com/jfree/jfreechart/releases
+   - License: LGPL
+   - Also required: No separate dependency needed (1.5.x bundles everything)
+
+5. SQLite JDBC 3.45.1.0 (sqlite-jdbc-3.45.1.0.jar)
+   - Purpose: SQLite database for packet persistence and search
+   - Download: https://github.com/xerial/sqlite-jdbc/releases
+   - License: Apache 2.0
+
+6. JSON (json-20240303.jar)
+   - Purpose: JSON export of captured packets
+   - Download: https://github.com/stleary/JSON-java/releases
+   - License: JSON License (MIT-like)
+
+SETUP INSTRUCTIONS:
+-------------------
+1. Download the 3 new JAR files from the links above
+2. Place them in the lib/ folder
+3. In IntelliJ IDEA: File > Project Structure > Modules > Dependencies
+   - Click '+' > JARs or Directories
+   - Select each new JAR from lib/
+4. Rebuild the project
+
+SYSTEM REQUIREMENTS:
+--------------------
+- Java 11+ (for HttpURLConnection features)
+- Npcap or WinPcap (Windows) / libpcap (Linux/macOS) for packet capture
+- Internet connection for Gemini AI feature

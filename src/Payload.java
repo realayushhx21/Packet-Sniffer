@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.*;
 import javax.swing.*;
 import java.awt.*;
-import com.formdev.flatlaf.FlatLightLaf;
 
 public class Payload extends javax.swing.JFrame {
 
@@ -15,12 +14,7 @@ public class Payload extends javax.swing.JFrame {
     private int i;
 
     public Payload(List<Packet> p, int index, PcapHandle handle) {
-        // Set FlatLaf look and feel
-        try {
-            UIManager.setLookAndFeel(new FlatLightLaf());
-        } catch (Exception ex) {
-            System.err.println("Failed to initialize FlatLaf");
-        }
+        UITheme.initTheme();
         p1 = p;
         i = index;
         ha = handle;
@@ -40,45 +34,40 @@ public class Payload extends javax.swing.JFrame {
     private void initComponents() {
         setTitle("Packet Payload");
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setSize(600, 500);
+        setSize(700, 550);
+        getContentPane().setBackground(UITheme.BG_PRIMARY);
         setLayout(new BorderLayout());
 
-        // Header Panel
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(240, 240, 240)); // Light gray background
+        // Gradient Header
+        JPanel headerPanel = UITheme.createGradientHeader("📦  PAYLOAD DETAILS");
 
-        JLabel headerLabel = new JLabel("PAYLOAD DETAILS", SwingConstants.CENTER);
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        headerLabel.setForeground(new Color(50, 50, 50));
-        headerLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        headerPanel.add(headerLabel, BorderLayout.NORTH);
+        // Terminal-styled Payload Display
+        jTextArea1 = UITheme.createTerminalTextArea();
+        JScrollPane scrollPane = UITheme.createStyledScrollPane(jTextArea1);
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(UITheme.BG_PRIMARY);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(12, 20, 8, 20));
+        JPanel borderedContent = UITheme.createTitledPanel("Payload Content", scrollPane);
+        contentPanel.add(borderedContent, BorderLayout.CENTER);
 
-        // Payload Display Area
-        jTextArea1 = new JTextArea();
-        jTextArea1.setEditable(false);
-        jTextArea1.setFont(new Font("Monospaced", Font.PLAIN, 14)); // Monospaced for better alignment of payload data
-        JScrollPane scrollPane = new JScrollPane(jTextArea1);
-        scrollPane.setBorder(BorderFactory.createTitledBorder("Payload Content"));
-        headerPanel.add(scrollPane, BorderLayout.CENTER);
-
-        // Footer Panel with Back Button
+        // Footer
         JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        footerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        footerPanel.setBackground(UITheme.BG_PRIMARY);
+        footerPanel.setBorder(BorderFactory.createEmptyBorder(4, 10, 14, 10));
 
-        JButton backButton = new JButton("Back");
+        JButton backButton = UITheme.createStyledButton("←  Back", UITheme.ACCENT);
         backButton.setToolTipText("Return to Packet Details");
         backButton.addActionListener(evt -> {
             new PacketDetails(p1, i, ha).setVisible(true);
             this.setVisible(false);
         });
-
         footerPanel.add(backButton);
 
-        // Add Panels to Frame
-        add(headerPanel, BorderLayout.CENTER);
+        add(headerPanel, BorderLayout.NORTH);
+        add(contentPanel, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
 
-        setLocationRelativeTo(null); // Center the window
+        setLocationRelativeTo(null);
         setVisible(true);
     }
 
@@ -86,7 +75,6 @@ public class Payload extends javax.swing.JFrame {
 
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(() -> {
-            // For testing, instantiate with empty packet list
             new Payload(new ArrayList<>(), 0, null).setVisible(true);
         });
     }

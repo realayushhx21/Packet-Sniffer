@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.*;
 import javax.swing.*;
 import java.awt.*;
-import com.formdev.flatlaf.FlatLightLaf;
 
 public class Header extends javax.swing.JFrame {
 
@@ -15,12 +14,7 @@ public class Header extends javax.swing.JFrame {
     private int i;
 
     public Header(List<Packet> p, int index, PcapHandle handle) {
-        // Set FlatLaf look and feel
-        try {
-            UIManager.setLookAndFeel(new FlatLightLaf());
-        } catch (Exception ex) {
-            System.err.println("Failed to initialize FlatLaf");
-        }
+        UITheme.initTheme();
         p1 = p;
         i = index;
         ha = handle;
@@ -35,40 +29,37 @@ public class Header extends javax.swing.JFrame {
     private void initComponents() {
         setTitle("Packet Header");
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setSize(500, 300);
+        setSize(600, 380);
+        getContentPane().setBackground(UITheme.BG_PRIMARY);
         setLayout(new BorderLayout());
 
-        // Header Panel
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(240, 240, 240)); // Light gray background
-
-        JLabel headerLabel = new JLabel("PACKET HEADER", SwingConstants.CENTER);
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        headerLabel.setForeground(new Color(50, 50, 50));
-        headerLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        headerPanel.add(headerLabel, BorderLayout.NORTH);
+        // Gradient Header
+        JPanel headerPanel = UITheme.createGradientHeader("📋  PACKET HEADER");
 
         // Packet Header Details
         jLabel4 = new JLabel("", SwingConstants.CENTER); // Display header details dynamically
-        jLabel4.setFont(new Font("Arial", Font.PLAIN, 14));
-        jLabel4.setBorder(BorderFactory.createTitledBorder("Header Details"));
-        headerPanel.add(jLabel4, BorderLayout.CENTER);
+        jLabel4.setFont(UITheme.FONT_MONO_LG);
+        jLabel4.setForeground(UITheme.TEXT_PRIMARY);
+        JPanel contentPanel = UITheme.createTitledPanel("Header Details", jLabel4);
+        contentPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createEmptyBorder(16, 20, 10, 20),
+                contentPanel.getBorder()));
 
         // Footer Panel with Back Button
         JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        footerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        footerPanel.setBackground(UITheme.BG_PRIMARY);
+        footerPanel.setBorder(BorderFactory.createEmptyBorder(4, 10, 14, 10));
 
-        JButton backButton = new JButton("Back");
+        JButton backButton = UITheme.createStyledButton("←  Back", UITheme.ACCENT);
         backButton.setToolTipText("Return to Packet Details");
         backButton.addActionListener(evt -> {
             new PacketDetails(p1, i, ha).setVisible(true);
             this.setVisible(false);
         });
-
         footerPanel.add(backButton);
 
-        // Add Panels to Frame
-        add(headerPanel, BorderLayout.CENTER);
+        add(headerPanel, BorderLayout.NORTH);
+        add(contentPanel, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
 
         setLocationRelativeTo(null); // Center the window

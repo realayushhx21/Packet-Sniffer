@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.*;
 import javax.swing.*;
 import java.awt.*;
-import com.formdev.flatlaf.FlatLightLaf;
 
 public class CheckStats extends javax.swing.JFrame {
 
@@ -15,12 +14,7 @@ public class CheckStats extends javax.swing.JFrame {
     private int i;
 
     public CheckStats(List<Packet> p, int index, PcapHandle handle) {
-        // Set FlatLaf look and feel
-        try {
-            UIManager.setLookAndFeel(new FlatLightLaf());
-        } catch (Exception ex) {
-            System.err.println("Failed to initialize FlatLaf");
-        }
+        UITheme.initTheme();
         p1 = p;
         i = index;
         ha = handle;
@@ -31,20 +25,20 @@ public class CheckStats extends javax.swing.JFrame {
     private void populateStatistics() {
         if (ha == null) {
             DefaultListModel<String> model = new DefaultListModel<>();
-            model.addElement("Statistics not available: Capture handle is null");
+            model.addElement("  Statistics not available: Capture handle is null");
             jList1.setModel(model);
             return;
         }
         try {
             PcapStat stat = ha.getStats();
             DefaultListModel<String> model = new DefaultListModel<>();
-            model.addElement("Packets Received: " + stat.getNumPacketsReceived());
-            model.addElement("Packets Dropped: " + stat.getNumPacketsDropped());
-            model.addElement("Packets Dropped by Interface: " + stat.getNumPacketsDroppedByIf());
+            model.addElement("  📥  Packets Received:  " + stat.getNumPacketsReceived());
+            model.addElement("  📉  Packets Dropped:  " + stat.getNumPacketsDropped());
+            model.addElement("  ⚠  Dropped by Interface:  " + stat.getNumPacketsDroppedByIf());
             jList1.setModel(model);
         } catch (PcapNativeException | NotOpenException e) {
             DefaultListModel<String> model = new DefaultListModel<>();
-            model.addElement("Error fetching statistics: " + e.getMessage());
+            model.addElement("  Error fetching statistics: " + e.getMessage());
             jList1.setModel(model);
             JOptionPane.showMessageDialog(this, "Error fetching statistics: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -53,42 +47,42 @@ public class CheckStats extends javax.swing.JFrame {
     private void initComponents() {
         setTitle("Packet Statistics");
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setSize(500, 400);
+        setSize(550, 420);
+        getContentPane().setBackground(UITheme.BG_PRIMARY);
         setLayout(new BorderLayout());
 
-        // Header Panel
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(240, 240, 240)); // Light background
-
-        JLabel headerLabel = new JLabel("STATISTICS", SwingConstants.CENTER);
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        headerLabel.setForeground(new Color(50, 50, 50));
-        headerLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        headerPanel.add(headerLabel, BorderLayout.CENTER);
+        // Gradient Header
+        JPanel headerPanel = UITheme.createGradientHeader("📊  STATISTICS");
 
         // Statistics List
-        jList1 = new JList<>();
-        JScrollPane scrollPane = new JScrollPane(jList1);
-        scrollPane.setBorder(BorderFactory.createTitledBorder("Packet Statistics"));
+        jList1 = UITheme.createStyledList(new DefaultListModel<>());
+        jList1.setFont(UITheme.FONT_SUBTITLE);
+        jList1.setFixedCellHeight(44);
+        JScrollPane scrollPane = UITheme.createStyledScrollPane(jList1);
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(UITheme.BG_PRIMARY);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(16, 20, 8, 20));
+        JPanel borderedContent = UITheme.createTitledPanel("Capture Statistics", scrollPane);
+        contentPanel.add(borderedContent, BorderLayout.CENTER);
 
-        // Footer Panel
+        // Footer
         JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        footerPanel.setBackground(UITheme.BG_PRIMARY);
+        footerPanel.setBorder(BorderFactory.createEmptyBorder(4, 10, 14, 10));
 
-        JButton backButton = new JButton("Back");
+        JButton backButton = UITheme.createStyledButton("←  Back", UITheme.ACCENT);
         backButton.setToolTipText("Return to Packet Details");
         backButton.addActionListener(evt -> {
             new PacketDetails(p1, i, ha).setVisible(true);
             this.setVisible(false);
         });
-
         footerPanel.add(backButton);
 
-        // Add Panels to Frame
         add(headerPanel, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
+        add(contentPanel, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
 
-        setLocationRelativeTo(null); // Center the window
+        setLocationRelativeTo(null);
         setVisible(true);
     }
 
@@ -96,7 +90,6 @@ public class CheckStats extends javax.swing.JFrame {
 
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(() -> {
-            // For testing, instantiate with empty packet list
             new CheckStats(new ArrayList<>(), 0, null).setVisible(true);
         });
     }
